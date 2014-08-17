@@ -1,50 +1,72 @@
 local svg = {}
 
-function svg.poly(vtxs)
-	local s = {"<polygon fill='#000000' points='"}
-	local sep
-	for i=1,#vtxs,2 do
-		table.insert(s, sep)
-		sep = ' '
-		table.insert(s, vtxs[i])
-		table.insert(s, ',')
-		table.insert(s, vtxs[i+1])
-	end
-	table.insert(s, "'/>")
-	return table.concat(s)
-end
+-- new system
 
-function svg.rect(xmin,xmax,ymin,ymax)
-	return svg.poly{xmin,ymin,xmax,ymin,xmax,ymax,xmin,ymax}
-end
-
--- there is a line, you know...
-function svg.line(...)
-	local args = {...}
-	local color
-	if type(args[1]) == 'table' then
-		args = args[1]
-		color = args.color
+function svg.node(tag, args, child)
+	if child == '' then child = nil end
+	local s = {}
+	table.insert(s, assert(tag))
+	for k,v in pairs(args) do
+		
+		-- used with nearly everything
+		if k == 'style' then
+			if type(v) == 'table' then
+				local t = {}
+				for k2,v2 in pairs(v) do
+					table.insert(t, k2..':'..v2)
+				end
+				v = table.concat(t, ';')
+			end
+		
+		-- used with poly and polyfill
+		elseif k == 'points' then
+			if type(v) == 'table' then
+				local t = {}
+				for _,v2 in ipairs(v) do
+					table.insert(t, v2[1]..','..v2[2])
+				end
+				v = table.concat(t, ' ')
+			end
+		end
+		table.insert(s, k.."='"..v.."'")
 	end
-	local x1,y1,x2,y2 = unpack(args,1,4)
-	--[[
-	local dx = x2 - x1
-	local dy = y2 - y1
-	local mag = math.max(math.sqrt(dx*dx + dy*dy), .001)
-	local nx = .2 * dx / mag
-	local ny = .2 * dy / mag
-	return svg.poly{x1,y1, x2,y2, x2+ny,y2-nx, x1+ny,y1-nx}
-	--]]
-	local color
-	if args.color then
-		color = table.concat(args.color,',')
+	s = '<' .. table.concat(s, ' ') 
+	if not child then
+		s = s .. '/>'
 	else
-		color = '0,0,0'
+		s = s .. '>' .. child .. '</' .. tag .. '>'
 	end
-	local width = args.width or 1
-	s = {'<line x1="',x1,'" y1="',y1,'" x2="', x2, '" y2="', y2, '" style="stroke:rgb(',color,');stroke-width:',width,'"/>'}
-	return table.concat(s)
+	return s
 end
+
+function svg.text(args, child)
+	return svg.node('text', args, child) 
+end
+
+function svg.line(args, child)
+	return svg.node('line', args, child)
+end
+
+function svg.g(args, child)
+	return svg.node('g', args, child)
+end
+
+function svg.polygon(args, child)
+	return svg.node('polygon', args, child)
+end
+
+function svg.polyline(args, child)
+	return svg.node('polyline', args, child)
+end
+
+function svg.rect(args, child)
+	return svg.node('rect', args, child)
+end
+
+function svg.line(args, child)
+	return svg.node('line', args, child)
+end
+
 function svg.matrix(...)
 	return table.concat{'matrix(', table.concat({...}, ' '), ')'}
 end
