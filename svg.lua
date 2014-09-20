@@ -28,6 +28,9 @@ function svg.node(tag, args, child)
 				v = table.concat(t, ' ')
 			end
 		end
+		if type(v) ~= 'number' and type(v) ~= 'string' then
+			error('tried to convert non-convertable obj '..tostring(v)..' type '..type(v)..' for key '..k)
+		end
 		table.insert(s, k.."='"..v.."'")
 	end
 	s = '<' .. table.concat(s, ' ') 
