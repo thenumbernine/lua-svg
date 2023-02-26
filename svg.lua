@@ -80,4 +80,3 @@ function svg.escape(s)
 end
 
 return svg
-
