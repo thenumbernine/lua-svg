@@ -1,0 +1,5 @@
+name = "svg"
+files = {
+	["README"] = "svg/README",
+	["svg.lua"] = "svg/svg.lua",
+}
